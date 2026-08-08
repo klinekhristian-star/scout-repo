@@ -1,4 +1,2 @@
-/** Legacy sample data — kept empty so no demo jobs appear in Scout. */
-import type { Job } from "@/data/types";
-
-export const seedJobs: Job[] = [];
+/** Legacy placeholder — Scout uses store profile + resume-library, not this file. */
+export {};

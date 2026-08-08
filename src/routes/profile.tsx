@@ -82,7 +82,7 @@ function ProfilePage() {
     <AppShell>
       <PageHeader
         title="Profile"
-        subtitle="Drives match scores, agent filters, cover letters, and tailored PDFs."
+        subtitle="Your identity drives match scores, agent filters, cover letters, and tailored PDFs."
         actions={
           <>
             <Button variant="outline" size="sm" onClick={doExport}>
@@ -113,11 +113,11 @@ function ProfilePage() {
               size="sm"
               onClick={() => {
                 resetDemo();
-                toast.message("Demo data restored");
+                toast.message("Cleared pipeline, agents, stories, and activity");
               }}
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              Reset demo
+              Clear workspace
             </Button>
             <Button
               size="sm"
@@ -163,7 +163,7 @@ function ProfilePage() {
           <CardHeader>
             <CardTitle>Identity</CardTitle>
             <CardDescription>
-              Khristian Kline · GTM / engagement executive defaults
+              Edit to match how you want to show up in packets and outreach.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -284,8 +284,8 @@ function ProfilePage() {
           <CardHeader>
             <CardTitle>Job boards & ATS watchlist</CardTitle>
             <CardDescription>
-              Public JSON/RSS sources + Greenhouse / Lever / Ashby / Workday
-              company boards.
+              Public JSON/RSS sources. Add Greenhouse / Lever / Ashby / Workday
+              company boards when ready (empty by default).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -307,16 +307,6 @@ function ProfilePage() {
                   {BOARD_LABELS[id]}
                 </label>
               ))}
-              <label className="inline-flex items-center gap-2 text-sm border border-border rounded-full px-3 py-1.5">
-                <input
-                  type="checkbox"
-                  checked={boardSettings.includeSeedJobs}
-                  onChange={(e) =>
-                    setBoardSettings({ includeSeedJobs: e.target.checked })
-                  }
-                />
-                Seed demo roles
-              </label>
               <label className="inline-flex items-center gap-2 text-sm border border-border rounded-full px-3 py-1.5">
                 <input
                   type="checkbox"
