@@ -8,11 +8,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Scout — Job tracker & ATS resume PDF" },
+      { title: "Scout — Job Search Automation" },
       {
         name: "description",
         content:
-          "Scout tracks applications and turns job descriptions into ATS-tailored, designed resume PDFs.",
+          "Scout: job board sync, ATS company watchlists, search agents, match scoring, pipeline, tailored resumes, and designed PDF export.",
       },
     ],
     links: [

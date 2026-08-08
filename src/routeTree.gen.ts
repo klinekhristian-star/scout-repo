@@ -10,53 +10,73 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ResumeRouteImport } from './routes/resume'
-import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
+import { Route as AgentsRouteImport } from './routes/agents'
+import { Route as DiscoverRouteImport } from './routes/discover'
+import { Route as PipelineRouteImport } from './routes/pipeline'
+import { Route as ProfileRouteImport } from './routes/profile'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResumeRoute = ResumeRouteImport.update({
-  id: '/resume',
-  path: '/resume',
+const AgentsRoute = AgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
   getParentRoute: () => rootRouteImport,
 } as any)
-const JobsJobIdRoute = JobsJobIdRouteImport.update({
-  id: '/jobs/$jobId',
-  path: '/jobs/$jobId',
+const DiscoverRoute = DiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PipelineRoute = PipelineRouteImport.update({
+  id: '/pipeline',
+  path: '/pipeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/resume': typeof ResumeRoute
-  '/jobs/$jobId': typeof JobsJobIdRoute
+  '/agents': typeof AgentsRoute
+  '/discover': typeof DiscoverRoute
+  '/pipeline': typeof PipelineRoute
+  '/profile': typeof ProfileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/resume': typeof ResumeRoute
-  '/jobs/$jobId': typeof JobsJobIdRoute
+  '/agents': typeof AgentsRoute
+  '/discover': typeof DiscoverRoute
+  '/pipeline': typeof PipelineRoute
+  '/profile': typeof ProfileRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/resume': typeof ResumeRoute
-  '/jobs/$jobId': typeof JobsJobIdRoute
+  '/agents': typeof AgentsRoute
+  '/discover': typeof DiscoverRoute
+  '/pipeline': typeof PipelineRoute
+  '/profile': typeof ProfileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/resume' | '/jobs/$jobId'
+  fullPaths: '/' | '/agents' | '/discover' | '/pipeline' | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/resume' | '/jobs/$jobId'
-  id: '__root__' | '/' | '/resume' | '/jobs/$jobId'
+  to: '/' | '/agents' | '/discover' | '/pipeline' | '/profile'
+  id: '__root__' | '/' | '/agents' | '/discover' | '/pipeline' | '/profile'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ResumeRoute: typeof ResumeRoute
-  JobsJobIdRoute: typeof JobsJobIdRoute
+  AgentsRoute: typeof AgentsRoute
+  DiscoverRoute: typeof DiscoverRoute
+  PipelineRoute: typeof PipelineRoute
+  ProfileRoute: typeof ProfileRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -68,18 +88,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/resume': {
-      id: '/resume'
-      path: '/resume'
-      fullPath: '/resume'
-      preLoaderRoute: typeof ResumeRouteImport
+    '/agents': {
+      id: '/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AgentsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/jobs/$jobId': {
-      id: '/jobs/$jobId'
-      path: '/jobs/$jobId'
-      fullPath: '/jobs/$jobId'
-      preLoaderRoute: typeof JobsJobIdRouteImport
+    '/discover': {
+      id: '/discover'
+      path: '/discover'
+      fullPath: '/discover'
+      preLoaderRoute: typeof DiscoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipeline': {
+      id: '/pipeline'
+      path: '/pipeline'
+      fullPath: '/pipeline'
+      preLoaderRoute: typeof PipelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -87,8 +121,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ResumeRoute: ResumeRoute,
-  JobsJobIdRoute: JobsJobIdRoute,
+  AgentsRoute: AgentsRoute,
+  DiscoverRoute: DiscoverRoute,
+  PipelineRoute: PipelineRoute,
+  ProfileRoute: ProfileRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,34 +1,24 @@
-# Scout
+# Scout — Job Search Automation
 
-Job application tracker with **ATS resume tailoring** and **designed PDF export**.
+Full job search OS for enterprise GTM / digital engagement executives.
 
-## Flow
+## Features
 
-1. Keep a **master resume** (profile, summary, skills, experience).
-2. Save jobs with the full **job description**.
-3. On job detail → **Tailored resume**:
-   - Run ATS tailor (keyword match, reorder bullets/skills, rewrite summary framing)
-   - **Generate PDF** → downloads a designed, ATS-parseable PDF for that company
-
-## Stack
-
-- TanStack Start + React 19 + Tailwind v4
-- Zustand (local persistence in the browser)
-- Client-side PDF writer (no third-party PDF service)
+- **Dashboard** — stats, top matches, activity, run all agents
+- **Discover** — live board sync, boolean search, filters, add job link + JD
+- **Agents** — search automations with min match + auto-save
+- **Pipeline** — board/list stages through offer
+- **Profile** — Khristian Kline GTM defaults, board toggles, ATS watchlist
+- **Job detail** — match breakdown, open listing, cover letter, **Suggest tailored resume**, **Generate PDF**
+- **Boards** — Remotive, Arbeitnow, RemoteOK, Jobicy, Himalayas, The Muse, We Work Remotely, optional Adzuna
+- **ATS** — Greenhouse, Lever, Ashby, Workday public JSON
 
 ## Develop
 
 ```bash
-npm install
-npm run dev   # 0.0.0.0:8080
+npm run dev
 ```
 
 ## Deploy
 
-Built for Vercel (`nitro` preset on production build):
-
-```bash
-npm run build
-```
-
-Import this GitHub repo in [Vercel](https://vercel.com/new) and deploy. No env vars required for the demo (data is browser-local).
+Configured for Vercel via Nitro. `npm run build` emits `.vercel/output`.
