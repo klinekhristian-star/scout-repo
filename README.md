@@ -2,6 +2,9 @@
 
 Full job search OS for enterprise GTM / digital engagement executives.
 
+**Live:** [scout-repo-gtm-insights.vercel.app](https://scout-repo-gtm-insights.vercel.app)  
+**Repo:** [klinekhristian-star/scout-repo](https://github.com/klinekhristian-star/scout-repo)
+
 ## Features
 
 - **Dashboard** — stats, top matches, activity, run all agents
@@ -22,3 +25,4 @@ npm run dev
 ## Deploy
 
 Configured for Vercel via Nitro. `npm run build` emits `.vercel/output`.
+Pushing to `main` deploys via the GitHub ↔ Vercel integration.
