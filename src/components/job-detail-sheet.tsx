@@ -12,7 +12,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,47 @@ import { generateCoverLetter, scoreJob } from "@/lib/matching";
 import { buildResumePdf, downloadPdf, slugify } from "@/lib/pdf-resume";
 import { useJobStore } from "@/lib/store";
 import { tailorResumeForJob } from "@/lib/tailor-resume";
+import type { Experience } from "@/lib/types";
+
+/** Map ATS tailor snapshot → designed PDF payload (job description → tailor → PDF). */
+function snapshotToPdfExperience(
+  result: TailoredResumeSnapshot,
+  job: Job,
+  profileLocation: string,
+): Experience[] {
+  const metrics = result.metrics ?? [];
+  const blocks = result.experienceBlocks ?? [];
+
+  const selected: Experience = {
+    id: "selected",
+    company: job.company,
+    title: "Selected outcomes (role-aligned)",
+    location: profileLocation,
+    start: "",
+    end: "Present",
+    bullets: [
+      ...metrics.slice(0, 4).map((m) => `${m.metric} — ${m.label}: ${m.detail}`),
+      ...blocks.slice(0, 4),
+    ].filter(Boolean),
+  };
+
+  // Chronology-style second block from remaining narrative bullets
+  const rest = blocks.slice(4);
+  if (rest.length === 0) return [selected];
+
+  return [
+    selected,
+    {
+      id: "career",
+      company: "Career highlights",
+      title: result.tailoredHeadline,
+      location: profileLocation,
+      start: "",
+      end: "",
+      bullets: rest,
+    },
+  ];
+}
 
 export function JobDetailSheet({
   job,
@@ -52,7 +93,32 @@ export function JobDetailSheet({
   );
   const app = job ? getApplicationForJob(job.id) : undefined;
 
+  // Reset / rehydrate when the open job changes
+  useEffect(() => {
+    if (!job) {
+      setTailored(null);
+      setCover(null);
+      return;
+    }
+    const existing = useJobStore.getState().getApplicationForJob(job.id);
+    setTailored(existing?.tailoredResume ?? null);
+    setCover(existing?.coverLetter ?? null);
+    setVariantId(
+      (existing?.tailoredResume?.baseVariantId as ResumeVariantId) || "impact",
+    );
+  }, [job?.id]);
+
   if (!open || !job || !match) return null;
+
+  const persistTailor = (result: TailoredResumeSnapshot) => {
+    if (app) {
+      updateApplication(app.id, { tailoredResume: result });
+    } else {
+      saveJob(job.id, "manual");
+      const created = useJobStore.getState().getApplicationForJob(job.id);
+      if (created) updateApplication(created.id, { tailoredResume: result });
+    }
+  };
 
   const runTailor = async () => {
     setBusy("tailor");
@@ -60,13 +126,7 @@ export function JobDetailSheet({
       await new Promise((r) => setTimeout(r, 250));
       const result = tailorResumeForJob(job, profile, variantId);
       setTailored(result);
-      if (app) {
-        updateApplication(app.id, { tailoredResume: result });
-      } else {
-        saveJob(job.id, "manual");
-        const created = useJobStore.getState().getApplicationForJob(job.id);
-        if (created) updateApplication(created.id, { tailoredResume: result });
-      }
+      persistTailor(result);
       pushActivity({
         type: "resume_tailored",
         title: `Tailored resume for ${job.title}`,
@@ -78,11 +138,14 @@ export function JobDetailSheet({
     }
   };
 
+  /** Job description → ATS tailor → designed PDF download */
   const runPdf = async () => {
     setBusy("pdf");
     try {
       const result = tailored ?? tailorResumeForJob(job, profile, variantId);
       setTailored(result);
+      if (!tailored) persistTailor(result);
+
       const bytes = buildResumePdf(
         {
           fullName: profile.name,
@@ -95,16 +158,15 @@ export function JobDetailSheet({
         {
           summary: result.tailoredSummary,
           skills: result.prioritizedSkills ?? profile.skills,
-          experience: (result.experienceBlocks ?? []).map((b, i) => ({
-            id: `x${i}`,
-            company: job.company,
-            title: i === 0 ? "Selected outcomes" : "Experience",
-            location: profile.location,
-            start: "",
-            end: "",
-            bullets: [b],
-          })),
-          education: [],
+          experience: snapshotToPdfExperience(result, job, profile.location),
+          education: [
+            {
+              id: "edu-1",
+              school: "Executive career · GTM Insights Group · ON24",
+              degree: "Enterprise GTM · Digital engagement · MarTech",
+              year: "25+ years",
+            },
+          ],
           matchedKeywords: result.matchedKeywords,
           missingKeywords: result.missingKeywords,
           matchScore: result.atsScore,
@@ -116,6 +178,11 @@ export function JobDetailSheet({
         bytes,
         `${slugify(profile.name)}-${slugify(job.company)}-${slugify(job.title)}-tailored.pdf`,
       );
+      pushActivity({
+        type: "resume_tailored",
+        title: `PDF downloaded for ${job.title}`,
+        detail: `${job.company} · ATS ${result.atsScore}%`,
+      });
       toast.success("Designed PDF downloaded");
     } catch (e) {
       console.error(e);
@@ -231,6 +298,7 @@ export function JobDetailSheet({
             </div>
           </section>
 
+          {/* Job description → ATS tailor → designed PDF */}
           <section className="rounded-[var(--radius-lg)] border border-border overflow-hidden">
             <div className="border-b border-border bg-primary-soft/40 px-4 py-3">
               <div className="inline-flex items-center gap-1.5 text-primary text-xs font-semibold uppercase tracking-wider">
@@ -247,35 +315,113 @@ export function JobDetailSheet({
                 Base resume
                 <select
                   value={variantId}
-                  onChange={(e) =>
-                    setVariantId(e.target.value as ResumeVariantId)
-                  }
+                  onChange={(e) => {
+                    setVariantId(e.target.value as ResumeVariantId);
+                    setTailored(null);
+                  }}
                   className="mt-1 h-10 w-full rounded-[var(--radius-md)] border border-border bg-surface-card px-3 text-sm"
                 >
                   {listResumeVariants().map((v) => (
                     <option key={v.id} value={v.id}>
-                      {v.name}
+                      {v.name} — {v.description}
                     </option>
                   ))}
                 </select>
               </label>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button
-                  className="sm:flex-1"
-                  variant="outline"
-                  disabled={busy !== null}
-                  onClick={() => void runTailor()}
-                >
-                  {busy === "tailor" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FileText className="h-4 w-4" />
+              <Button
+                className="w-full"
+                variant="outline"
+                disabled={busy !== null}
+                onClick={() => void runTailor()}
+              >
+                {busy === "tailor" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4" />
+                )}
+                Suggest tailored resume
+              </Button>
+
+              {tailored && (
+                <div className="space-y-3 rounded-[var(--radius-md)] border border-border bg-surface p-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    <Badge variant="secondary">ATS {tailored.atsScore}%</Badge>
+                    <Badge variant="outline">{tailored.baseVariantName}</Badge>
+                  </div>
+                  <p className="text-sm font-medium">{tailored.tailoredHeadline}</p>
+                  <p className="text-sm text-muted leading-relaxed">
+                    {tailored.tailoredSummary}
+                  </p>
+                  {(tailored.metrics?.length ?? 0) > 0 && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {tailored.metrics!.slice(0, 4).map((m) => (
+                        <div
+                          key={m.label}
+                          className="rounded-[var(--radius-sm)] border border-border bg-surface-card px-2 py-1.5"
+                        >
+                          <div className="text-sm font-semibold tabular-nums">
+                            {m.metric}
+                          </div>
+                          <div className="text-[11px] text-muted">{m.label}</div>
+                        </div>
+                      ))}
+                    </div>
                   )}
-                  Suggest tailored resume
-                </Button>
+                  <div className="flex flex-wrap gap-1">
+                    {tailored.matchedKeywords.map((k) => (
+                      <Badge key={k} variant="secondary">
+                        {k}
+                      </Badge>
+                    ))}
+                  </div>
+                  {tailored.guidance?.length ? (
+                    <ul className="text-xs text-muted space-y-1 list-disc pl-4">
+                      {tailored.guidance.map((g) => (
+                        <li key={g}>{g}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  <Textarea
+                    value={tailored.plainText}
+                    readOnly
+                    rows={8}
+                    className="font-mono text-xs"
+                  />
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="sm:flex-1"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(tailored.plainText);
+                        toast.success("Copied tailored text");
+                      }}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy text
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="sm:flex-1"
+                      disabled={busy !== null}
+                      onClick={() => void runPdf()}
+                    >
+                      {busy === "pdf" ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <FileDown className="h-3.5 w-3.5" />
+                      )}
+                      Generate PDF
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Always-visible download path under the tailored section */}
+              {!tailored && (
                 <Button
-                  className="sm:flex-1"
+                  className="w-full"
                   disabled={busy !== null}
                   onClick={() => void runPdf()}
                 >
@@ -285,46 +431,10 @@ export function JobDetailSheet({
                     <FileDown className="h-4 w-4" />
                   )}
                   Generate PDF
+                  <span className="text-xs font-normal opacity-80">
+                    (tailors first)
+                  </span>
                 </Button>
-              </div>
-
-              {tailored && (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="secondary">
-                      ATS {tailored.atsScore}%
-                    </Badge>
-                    <Badge variant="outline">{tailored.baseVariantName}</Badge>
-                  </div>
-                  <p className="text-sm font-medium">{tailored.tailoredHeadline}</p>
-                  <p className="text-sm text-muted leading-relaxed">
-                    {tailored.tailoredSummary}
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {tailored.matchedKeywords.map((k) => (
-                      <Badge key={k} variant="secondary">
-                        {k}
-                      </Badge>
-                    ))}
-                  </div>
-                  <Textarea
-                    value={tailored.plainText}
-                    readOnly
-                    rows={8}
-                    className="font-mono text-xs"
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={async () => {
-                      await navigator.clipboard.writeText(tailored.plainText);
-                      toast.success("Copied tailored text");
-                    }}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    Copy text
-                  </Button>
-                </div>
               )}
             </div>
           </section>
@@ -343,7 +453,11 @@ export function JobDetailSheet({
               </Button>
             </div>
             {cover && (
-              <Textarea value={cover} onChange={(e) => setCover(e.target.value)} rows={8} />
+              <Textarea
+                value={cover}
+                onChange={(e) => setCover(e.target.value)}
+                rows={8}
+              />
             )}
           </section>
 
