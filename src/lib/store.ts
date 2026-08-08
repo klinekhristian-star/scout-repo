@@ -428,6 +428,19 @@ interface JobStore {
   ) => void;
   removeOutreach: (jobId: string, outreachId: string) => void;
 
+  /** Replace core persisted state from a Scout backup JSON */
+  importBackup: (data: {
+    profile: Profile;
+    boardSettings?: JobBoardSettings;
+    agents?: SearchAgent[];
+    applications?: Application[];
+    stories?: InterviewStory[];
+    activity?: ActivityEvent[];
+    liveJobs?: Job[];
+    manualJobs?: Job[];
+    lastSyncAt?: string;
+  }) => void;
+
   resetDemo: () => void;
 }
 
@@ -1015,6 +1028,46 @@ export const useJobStore = create<JobStore>()(
               : a,
           ),
         }));
+      },
+
+      importBackup: (data) => {
+        set((s) => {
+          const baseActivity = Array.isArray(data.activity)
+            ? data.activity
+            : s.activity;
+          return {
+            profile: data.profile ?? s.profile,
+            boardSettings: data.boardSettings
+              ? mergeBoardSettings(data.boardSettings)
+              : s.boardSettings,
+            agents: Array.isArray(data.agents) ? data.agents : s.agents,
+            applications: Array.isArray(data.applications)
+              ? data.applications.map((a) => ({
+                  ...a,
+                  outreach: Array.isArray(a.outreach) ? a.outreach : [],
+                }))
+              : s.applications,
+            stories:
+              Array.isArray(data.stories) && data.stories.length
+                ? data.stories
+                : s.stories,
+            liveJobs: Array.isArray(data.liveJobs) ? data.liveJobs : s.liveJobs,
+            manualJobs: Array.isArray(data.manualJobs)
+              ? data.manualJobs
+              : s.manualJobs,
+            lastSyncAt: data.lastSyncAt ?? s.lastSyncAt,
+            activity: [
+              {
+                id: uid("act"),
+                type: "profile_updated" as const,
+                title: "Backup restored",
+                detail: new Date().toLocaleString(),
+                createdAt: new Date().toISOString(),
+              },
+              ...baseActivity,
+            ].slice(0, 80),
+          };
+        });
       },
 
       resetDemo: () => {

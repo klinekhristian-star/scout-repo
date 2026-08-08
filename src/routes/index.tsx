@@ -4,6 +4,8 @@ import {
   BookOpen,
   Bot,
   Briefcase,
+  CalendarClock,
+  Download,
   Network,
   Play,
   Sparkles,
@@ -18,8 +20,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Job } from "@/data/types";
+import {
+  buildScoutBackup,
+  downloadBackup,
+  downloadCsvExport,
+} from "@/lib/backup";
+import { buildDueToday, dueKindLabel } from "@/lib/due-today";
 import { scoreJob } from "@/lib/matching";
 import { useJobCatalog, useJobStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   component: DashboardPage,
@@ -32,6 +41,10 @@ function DashboardPage() {
   const agents = useJobStore((s) => s.agents);
   const stories = useJobStore((s) => s.stories);
   const activity = useJobStore((s) => s.activity);
+  const boardSettings = useJobStore((s) => s.boardSettings);
+  const liveJobs = useJobStore((s) => s.liveJobs);
+  const manualJobs = useJobStore((s) => s.manualJobs);
+  const lastSyncAt = useJobStore((s) => s.lastSyncAt);
   const runAllAgents = useJobStore((s) => s.runAllAgents);
   const syncBoards = useJobStore((s) => s.syncBoards);
   const [selected, setSelected] = useState<Job | null>(null);
@@ -51,30 +64,48 @@ function DashboardPage() {
   }, [applications]);
 
   const outreachCount = useMemo(
-    () =>
-      applications.reduce((n, a) => n + (a.outreach?.length ?? 0), 0),
+    () => applications.reduce((n, a) => n + (a.outreach?.length ?? 0), 0),
     [applications],
   );
 
-  const followUpsDue = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    let n = 0;
-    for (const a of applications) {
-      for (const o of a.outreach ?? []) {
-        if (o.nextFollowUp && o.nextFollowUp.slice(0, 10) <= today && o.status !== "closed")
-          n++;
-      }
-    }
-    return n;
-  }, [applications]);
+  const dueItems = useMemo(
+    () => buildDueToday({ applications, catalog, profile }),
+    [applications, catalog, profile],
+  );
+
+  const followUpsDue = useMemo(
+    () => dueItems.filter((d) => d.kind === "follow_up").length,
+    [dueItems],
+  );
+
+  const exportAll = () => {
+    const state = {
+      profile,
+      boardSettings,
+      agents,
+      applications,
+      stories,
+      activity,
+      liveJobs,
+      manualJobs,
+      lastSyncAt,
+    };
+    downloadBackup(buildScoutBackup(state));
+    downloadCsvExport(applications, catalog);
+    toast.success("Backup JSON + pipeline CSV downloaded");
+  };
 
   return (
     <AppShell>
       <PageHeader
         title="Dashboard"
-        subtitle={`Welcome back, ${profile.name.split(" ")[0]}. Match scoring, network outreach, interview stories, and application packets.`}
+        subtitle={`Welcome back, ${profile.name.split(" ")[0]}. Start with Due today, then export a backup so nothing lives only in this browser.`}
         actions={
           <>
+            <Button variant="outline" size="sm" onClick={exportAll}>
+              <Download className="h-3.5 w-3.5" />
+              Export backup
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -116,10 +147,10 @@ function DashboardPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-6">
         {[
-          ["Catalog", catalog.length, "roles"],
+          ["Due today", dueItems.length, "items"],
+          ["Follow-ups", followUpsDue, "due"],
           ["Pipeline", applications.length, "apps"],
           ["Outreach", outreachCount, "logs"],
-          ["Follow-ups", followUpsDue, "due"],
           ["Stories", stories.length, "STAR"],
           ["Top match", topMatches[0]?.score ?? 0, "%"],
         ].map(([label, value, unit]) => (
@@ -134,6 +165,72 @@ function DashboardPage() {
           </Card>
         ))}
       </div>
+
+      {/* Due today queue */}
+      <Card className="mb-6 border-primary/25">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base inline-flex items-center gap-1.5">
+            <CalendarClock className="h-4 w-4 text-primary" />
+            Due today
+            <Badge variant="secondary" className="ml-1">
+              {dueItems.length}
+            </Badge>
+          </CardTitle>
+          <p className="text-sm text-muted font-normal">
+            Follow-ups, stale applications, interview prep, and high matches not
+            yet saved.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {dueItems.length === 0 && (
+            <p className="text-sm text-muted py-4 text-center">
+              Nothing urgent — sync boards or log outreach with follow-up dates.
+            </p>
+          )}
+          {dueItems.slice(0, 12).map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                if (item.job) setSelected(item.job);
+                else toast.message("Job not in catalog — open Pipeline");
+              }}
+              className={cn(
+                "w-full text-left rounded-[var(--radius-md)] border border-border bg-surface px-3 py-2.5",
+                "hover:border-primary/40 hover:bg-primary-soft/30 transition-colors min-h-11",
+              )}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-medium text-sm leading-snug">
+                  {item.title}
+                </span>
+                <div className="flex gap-1.5 shrink-0">
+                  <Badge
+                    variant={
+                      item.kind === "follow_up"
+                        ? "warning"
+                        : item.kind === "high_match"
+                          ? "secondary"
+                          : "outline"
+                    }
+                  >
+                    {item.badge}
+                  </Badge>
+                  <Badge variant="outline">{dueKindLabel(item.kind)}</Badge>
+                </div>
+              </div>
+              <p className="text-xs text-muted mt-0.5 leading-relaxed">
+                {item.detail}
+              </p>
+            </button>
+          ))}
+          {dueItems.length > 12 && (
+            <p className="text-xs text-muted text-center pt-1">
+              +{dueItems.length - 12} more — clear top items first
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] min-w-0">
         <div className="space-y-3 min-w-0">
@@ -177,6 +274,24 @@ function DashboardPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base inline-flex items-center gap-1.5">
+                <Download className="h-4 w-4" /> Backup
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted">
+              <p>
+                Export profile, pipeline, outreach, stories, and agents as JSON
+                + a CSV of applications. Restore from Profile anytime.
+              </p>
+              <Button size="sm" variant="outline" onClick={exportAll}>
+                <Download className="h-3.5 w-3.5" />
+                Download backup
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base inline-flex items-center gap-1.5">
                 <Network className="h-4 w-4" /> Network
               </CardTitle>
             </CardHeader>
@@ -190,10 +305,6 @@ function DashboardPage() {
                   {followUpsDue}
                 </span>{" "}
                 follow-ups due
-              </p>
-              <p className="text-xs leading-relaxed">
-                Open any job → Outreach & network. Log contacts, referrals, and
-                next steps per role.
               </p>
             </CardContent>
           </Card>
