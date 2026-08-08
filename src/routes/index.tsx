@@ -1,5 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Bot, Briefcase, Play, Sparkles, RefreshCw } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  Bot,
+  Briefcase,
+  Network,
+  Play,
+  Sparkles,
+  RefreshCw,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/layout";
@@ -21,6 +30,7 @@ function DashboardPage() {
   const catalog = useJobCatalog();
   const applications = useJobStore((s) => s.applications);
   const agents = useJobStore((s) => s.agents);
+  const stories = useJobStore((s) => s.stories);
   const activity = useJobStore((s) => s.activity);
   const runAllAgents = useJobStore((s) => s.runAllAgents);
   const syncBoards = useJobStore((s) => s.syncBoards);
@@ -40,11 +50,29 @@ function DashboardPage() {
     return c;
   }, [applications]);
 
+  const outreachCount = useMemo(
+    () =>
+      applications.reduce((n, a) => n + (a.outreach?.length ?? 0), 0),
+    [applications],
+  );
+
+  const followUpsDue = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    let n = 0;
+    for (const a of applications) {
+      for (const o of a.outreach ?? []) {
+        if (o.nextFollowUp && o.nextFollowUp.slice(0, 10) <= today && o.status !== "closed")
+          n++;
+      }
+    }
+    return n;
+  }, [applications]);
+
   return (
     <AppShell>
       <PageHeader
         title="Dashboard"
-        subtitle={`Welcome back, ${profile.name.split(" ")[0]}. Match scoring, agents, and pipeline in one place.`}
+        subtitle={`Welcome back, ${profile.name.split(" ")[0]}. Match scoring, network outreach, interview stories, and application packets.`}
         actions={
           <>
             <Button
@@ -86,11 +114,13 @@ function DashboardPage() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-6">
         {[
           ["Catalog", catalog.length, "roles"],
           ["Pipeline", applications.length, "apps"],
-          ["Agents", agents.filter((a) => a.enabled).length, "active"],
+          ["Outreach", outreachCount, "logs"],
+          ["Follow-ups", followUpsDue, "due"],
+          ["Stories", stories.length, "STAR"],
           ["Top match", topMatches[0]?.score ?? 0, "%"],
         ].map(([label, value, unit]) => (
           <Card key={label as string}>
@@ -123,7 +153,7 @@ function DashboardPage() {
           ))}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 min-w-0">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base inline-flex items-center gap-1.5">
@@ -140,6 +170,46 @@ function DashboardPage() {
               )}
               <Button variant="ghost" size="sm" className="mt-2" asChild>
                 <Link to="/pipeline">Open pipeline</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base inline-flex items-center gap-1.5">
+                <Network className="h-4 w-4" /> Network
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted space-y-2">
+              <p>
+                <span className="font-semibold text-fg tabular-nums">
+                  {outreachCount}
+                </span>{" "}
+                outreach logs ·{" "}
+                <span className="font-semibold text-fg tabular-nums">
+                  {followUpsDue}
+                </span>{" "}
+                follow-ups due
+              </p>
+              <p className="text-xs leading-relaxed">
+                Open any job → Outreach & network. Log contacts, referrals, and
+                next steps per role.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base inline-flex items-center gap-1.5">
+                <BookOpen className="h-4 w-4" /> Story bank
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-muted">
+                {stories.length} STAR stories ready for interview kits.
+              </p>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/stories">Manage stories</Link>
               </Button>
             </CardContent>
           </Card>
@@ -182,7 +252,9 @@ function DashboardPage() {
                 </div>
               ))}
               {activity.length === 0 && (
-                <p className="text-sm text-muted">Run agents or sync boards to see activity.</p>
+                <p className="text-sm text-muted">
+                  Run agents or sync boards to see activity.
+                </p>
               )}
             </CardContent>
           </Card>

@@ -14,6 +14,7 @@ import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as StoriesRouteImport } from './routes/stories'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoriesRoute = StoriesRouteImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/discover': typeof DiscoverRoute
   '/pipeline': typeof PipelineRoute
   '/profile': typeof ProfileRoute
+  '/stories': typeof StoriesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/discover': typeof DiscoverRoute
   '/pipeline': typeof PipelineRoute
   '/profile': typeof ProfileRoute
+  '/stories': typeof StoriesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,22 @@ export interface FileRoutesById {
   '/discover': typeof DiscoverRoute
   '/pipeline': typeof PipelineRoute
   '/profile': typeof ProfileRoute
+  '/stories': typeof StoriesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agents' | '/discover' | '/pipeline' | '/profile'
+  fullPaths:
+    '/' | '/agents' | '/discover' | '/pipeline' | '/profile' | '/stories'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agents' | '/discover' | '/pipeline' | '/profile'
-  id: '__root__' | '/' | '/agents' | '/discover' | '/pipeline' | '/profile'
+  to: '/' | '/agents' | '/discover' | '/pipeline' | '/profile' | '/stories'
+  id:
+    | '__root__'
+    | '/'
+    | '/agents'
+    | '/discover'
+    | '/pipeline'
+    | '/profile'
+    | '/stories'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +94,7 @@ export interface RootRouteChildren {
   DiscoverRoute: typeof DiscoverRoute
   PipelineRoute: typeof PipelineRoute
   ProfileRoute: typeof ProfileRoute
+  StoriesRoute: typeof StoriesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +134,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stories': {
+      id: '/stories'
+      path: '/stories'
+      fullPath: '/stories'
+      preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +150,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiscoverRoute: DiscoverRoute,
   PipelineRoute: PipelineRoute,
   ProfileRoute: ProfileRoute,
+  StoriesRoute: StoriesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

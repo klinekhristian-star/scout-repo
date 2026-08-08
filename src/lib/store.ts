@@ -7,13 +7,16 @@ import type {
   Application,
   ApplicationStage,
   BoardSyncStatus,
+  InterviewStory,
   Job,
   JobBoardSettings,
+  OutreachEntry,
   Profile,
   SearchAgent,
   WorkMode,
   Seniority,
 } from "@/data/types";
+import { SEED_STORIES } from "@/data/story-bank";
 import { defaultAtsTargets } from "@/lib/job-boards/ats";
 import { TOGGLE_BOARD_IDS, type ToggleBoardId } from "@/lib/job-boards/meta";
 import { generateCoverLetter, jobMatchesAgent, scoreJob } from "@/lib/matching";
@@ -222,6 +225,20 @@ function seedApplications(): Application[] {
       appliedAt: daysAgo(10),
       updatedAt: daysAgo(1),
       source: "manual",
+      referralPath: "Ex-ON24 colleague now at Harbor Analytics",
+      outreach: [
+        {
+          id: "out-seed-1",
+          contactName: "Jordan Hale",
+          contactRole: "VP Marketing",
+          channel: "linkedin",
+          status: "replied",
+          note: "Intro call booked — lead with enterprise engagement outcomes.",
+          nextFollowUp: daysAgo(-2),
+          createdAt: daysAgo(5),
+          updatedAt: daysAgo(1),
+        },
+      ],
     },
     {
       id: "app-2",
@@ -391,6 +408,26 @@ interface JobStore {
   removeApplication: (applicationId: string) => void;
   getApplicationForJob: (jobId: string) => Application | undefined;
   pushActivity: (event: Omit<ActivityEvent, "id" | "createdAt">) => void;
+
+  stories: InterviewStory[];
+  addStory: (
+    input: Omit<InterviewStory, "id" | "createdAt" | "updatedAt">,
+  ) => string;
+  updateStory: (id: string, partial: Partial<InterviewStory>) => void;
+  deleteStory: (id: string) => void;
+
+  ensureApplication: (jobId: string) => Application | undefined;
+  addOutreach: (
+    jobId: string,
+    entry: Omit<OutreachEntry, "id" | "createdAt" | "updatedAt">,
+  ) => void;
+  updateOutreach: (
+    jobId: string,
+    outreachId: string,
+    partial: Partial<OutreachEntry>,
+  ) => void;
+  removeOutreach: (jobId: string, outreachId: string) => void;
+
   resetDemo: () => void;
 }
 
@@ -440,6 +477,7 @@ function matchAgentAgainstCatalog(
         source: "agent",
         agentId: agent.id,
         coverLetter: generateCoverLetter(job, profile),
+        outreach: [],
       });
       events.push({
         id: uid("act"),
@@ -474,6 +512,7 @@ export const useJobStore = create<JobStore>()(
       syncing: false,
       agents: seedAgents(),
       applications: seedApplications(),
+      stories: SEED_STORIES.map((s) => ({ ...s })),
       activity: seedActivity(),
       runningAgentId: null,
       hydrated: false,
@@ -753,6 +792,7 @@ export const useJobStore = create<JobStore>()(
           source,
           agentId,
           coverLetter: generateCoverLetter(job, state.profile),
+          outreach: [],
         };
         set((s) => ({
           applications: [app, ...s.applications],
@@ -802,6 +842,7 @@ export const useJobStore = create<JobStore>()(
             source: "manual",
             coverLetter:
               coverLetter ?? generateCoverLetter(job, state.profile),
+            outreach: [],
           };
           set((s) => ({
             applications: [app, ...s.applications],
@@ -865,6 +906,117 @@ export const useJobStore = create<JobStore>()(
         set((s) => ({ activity: push(s.activity, event) }));
       },
 
+      addStory: (input) => {
+        const id = uid("story");
+        const now = new Date().toISOString();
+        const story: InterviewStory = {
+          ...input,
+          id,
+          createdAt: now,
+          updatedAt: now,
+        };
+        set((s) => ({
+          stories: [story, ...s.stories],
+          activity: push(s.activity, {
+            type: "story_updated",
+            title: `Story added: ${story.title}`,
+          }),
+        }));
+        return id;
+      },
+
+      updateStory: (id, partial) => {
+        set((s) => ({
+          stories: s.stories.map((st) =>
+            st.id === id
+              ? { ...st, ...partial, updatedAt: new Date().toISOString() }
+              : st,
+          ),
+        }));
+      },
+
+      deleteStory: (id) => {
+        set((s) => ({
+          stories: s.stories.filter((st) => st.id !== id),
+          activity: push(s.activity, {
+            type: "story_updated",
+            title: "Story removed from bank",
+          }),
+        }));
+      },
+
+      ensureApplication: (jobId) => {
+        const existing = get().getApplicationForJob(jobId);
+        if (existing) return existing;
+        get().saveJob(jobId, "manual");
+        return get().getApplicationForJob(jobId);
+      },
+
+      addOutreach: (jobId, entry) => {
+        const app = get().ensureApplication(jobId);
+        if (!app) return;
+        const now = new Date().toISOString();
+        const row: OutreachEntry = {
+          ...entry,
+          id: uid("out"),
+          createdAt: now,
+          updatedAt: now,
+        };
+        set((s) => ({
+          applications: s.applications.map((a) =>
+            a.id === app.id
+              ? {
+                  ...a,
+                  outreach: [row, ...(a.outreach ?? [])],
+                  updatedAt: now,
+                }
+              : a,
+          ),
+          activity: push(s.activity, {
+            type: "outreach_logged",
+            title: `Outreach: ${entry.contactName}`,
+            detail: `${entry.channel} · ${entry.status}`,
+          }),
+        }));
+      },
+
+      updateOutreach: (jobId, outreachId, partial) => {
+        const app = get().getApplicationForJob(jobId);
+        if (!app) return;
+        const now = new Date().toISOString();
+        set((s) => ({
+          applications: s.applications.map((a) =>
+            a.id === app.id
+              ? {
+                  ...a,
+                  outreach: (a.outreach ?? []).map((o) =>
+                    o.id === outreachId
+                      ? { ...o, ...partial, updatedAt: now }
+                      : o,
+                  ),
+                  updatedAt: now,
+                }
+              : a,
+          ),
+        }));
+      },
+
+      removeOutreach: (jobId, outreachId) => {
+        const app = get().getApplicationForJob(jobId);
+        if (!app) return;
+        set((s) => ({
+          applications: s.applications.map((a) =>
+            a.id === app.id
+              ? {
+                  ...a,
+                  outreach: (a.outreach ?? []).filter((o) => o.id !== outreachId),
+                  updatedAt: new Date().toISOString(),
+                }
+              : a,
+          ),
+        }));
+      },
+
       resetDemo: () => {
         set({
           profile: defaultProfile,
@@ -876,6 +1028,7 @@ export const useJobStore = create<JobStore>()(
           syncing: false,
           agents: seedAgents(),
           applications: seedApplications(),
+          stories: SEED_STORIES.map((s) => ({ ...s })),
           activity: seedActivity(),
           runningAgentId: null,
         });
@@ -904,12 +1057,30 @@ export const useJobStore = create<JobStore>()(
           manualJobs: Array.isArray(p.manualJobs)
             ? p.manualJobs
             : current.manualJobs,
+          stories: Array.isArray(p.stories) && p.stories.length
+            ? p.stories
+            : current.stories,
+          applications: Array.isArray(p.applications)
+            ? p.applications.map((a: Application) => ({
+                ...a,
+                outreach: Array.isArray(a.outreach) ? a.outreach : [],
+              }))
+            : current.applications,
         };
       },
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.boardSettings = mergeBoardSettings(state.boardSettings);
           if (!Array.isArray(state.manualJobs)) state.manualJobs = [];
+          if (!Array.isArray(state.stories) || state.stories.length === 0) {
+            state.stories = SEED_STORIES.map((s) => ({ ...s }));
+          }
+          if (Array.isArray(state.applications)) {
+            state.applications = state.applications.map((a) => ({
+              ...a,
+              outreach: Array.isArray(a.outreach) ? a.outreach : [],
+            }));
+          }
           state.hydrated = true;
         }
       },

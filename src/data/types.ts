@@ -150,6 +150,48 @@ export interface TailoredResumeSnapshot {
   metrics?: Array<{ metric: string; label: string; detail: string }>;
 }
 
+/** Network / outreach log entry on a pipeline application */
+export type OutreachChannel =
+  | "linkedin"
+  | "email"
+  | "referral"
+  | "call"
+  | "event"
+  | "other";
+export type OutreachStatus =
+  | "planned"
+  | "sent"
+  | "replied"
+  | "meeting"
+  | "closed";
+
+export interface OutreachEntry {
+  id: string;
+  contactName: string;
+  contactRole?: string;
+  channel: OutreachChannel;
+  status: OutreachStatus;
+  note: string;
+  nextFollowUp?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** STAR interview story in the personal story bank */
+export interface InterviewStory {
+  id: string;
+  title: string;
+  situation: string;
+  task: string;
+  action: string;
+  result: string;
+  tags: string[];
+  brands?: string[];
+  metrics?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Application {
   id: string;
   jobId: string;
@@ -162,6 +204,12 @@ export interface Application {
   agentId?: string;
   coverLetter?: string;
   tailoredResume?: TailoredResumeSnapshot;
+  /** Warm-path / network log for this role */
+  outreach?: OutreachEntry[];
+  /** Short LinkedIn DM / connection note for this role */
+  linkedInNote?: string;
+  /** Who can introduce you (free text) */
+  referralPath?: string;
 }
 
 export interface ActivityEvent {
@@ -174,7 +222,10 @@ export interface ActivityEvent {
     | "agent_created"
     | "profile_updated"
     | "boards_synced"
-    | "resume_tailored";
+    | "resume_tailored"
+    | "outreach_logged"
+    | "packet_built"
+    | "story_updated";
   title: string;
   detail?: string;
   meta?: Record<string, string | number | boolean>;
@@ -191,4 +242,17 @@ export interface MatchBreakdown {
   workMode: number;
   matchedSkills: string[];
   missingSkills: string[];
+}
+
+export interface InterviewKit {
+  likelyQuestions: string[];
+  mappedStories: Array<{
+    storyId: string;
+    title: string;
+    why: string;
+    score: number;
+  }>;
+  talkingPoints: string[];
+  questionsToAsk: string[];
+  openers: string[];
 }

@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  BookOpen,
   Bot,
   Briefcase,
   Compass,
@@ -18,6 +19,7 @@ const NAV = [
   { to: "/discover", label: "Discover", icon: Search },
   { to: "/agents", label: "Agents", icon: Bot },
   { to: "/pipeline", label: "Pipeline", icon: Briefcase },
+  { to: "/stories", label: "Stories", icon: BookOpen },
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 
@@ -43,7 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1 rounded-full border border-border bg-surface-card p-1 shadow-[var(--shadow-card)]">
+          <nav className="hidden lg:flex items-center gap-1 rounded-full border border-border bg-surface-card p-1 shadow-[var(--shadow-card)]">
             {NAV.map((item) => {
               const active =
                 item.to === "/"
@@ -55,14 +57,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-colors",
+                    "inline-flex h-9 items-center gap-1.5 rounded-full px-2.5 xl:px-3.5 text-sm font-medium transition-colors",
                     active
                       ? "bg-bg text-fg-on-dark"
                       : "text-muted hover:text-fg hover:bg-surface",
                   )}
                 >
                   <Icon className="h-3.5 w-3.5" />
-                  {item.label}
+                  <span className="hidden xl:inline">{item.label}</span>
                 </Link>
               );
             })}
@@ -71,7 +73,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Button
             variant="outline"
             size="icon"
-            className="md:hidden shrink-0"
+            className="lg:hidden shrink-0"
             onClick={() => setOpen((v) => !v)}
             aria-label="Menu"
           >
@@ -79,7 +81,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
         {open && (
-          <div className="md:hidden border-t border-border bg-surface-card px-4 py-3 space-y-1">
+          <div className="lg:hidden border-t border-border bg-surface-card px-4 py-3 space-y-1">
             {NAV.map((item) => {
               const Icon = item.icon;
               return (
