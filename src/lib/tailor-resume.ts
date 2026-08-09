@@ -1,43 +1,33 @@
 import type { Job, Profile, TailoredResumeSnapshot } from "@/data/types";
 import {
-  getResumeVariant,
   type ResumeVariantId,
+  getResumeVariant,
   RESUME_VARIANTS,
 } from "@/data/resume-library";
 
-const STOP = new Set(
-  "a an and are as at be by for from has have in is it of on or the to with your our their this that will role job about what who how".split(
-    " ",
-  ),
-);
-
 function normalize(s: string) {
-  return s.toLowerCase().replace(/[^\w+#./\s-]/g, " ").replace(/\s+/g, " ").trim();
+  return s.toLowerCase().replace(/[^a-z0-9+.#]/g, " ");
 }
 
-function extractKeywords(job: Job): string[] {
-  const text = normalize(
-    `${job.title} ${job.company} ${job.description} ${job.requirements.join(" ")} ${job.skills.join(" ")}`,
-  );
-  const found = new Set<string>();
-  for (const s of job.skills) found.add(normalize(s));
-  for (const tok of text.split(" ")) {
-    if (tok.length < 4 || STOP.has(tok)) continue;
-    if (
-      /engagement|marketing|customer|digital|strategy|revenue|salesforce|marketo|webinar|event|enterprise|saas|pipeline|retention|gtm|advisory|partner/.test(
-        tok,
-      ) ||
-      tok.length >= 6
-    ) {
-      found.add(tok);
-    }
-  }
-  return [...found].slice(0, 36);
+function extractKeywords(blob: string): string[] {
+  const stop = new Set([
+    "and", "the", "for", "with", "from", "that", "this", "your", "our",
+    "will", "have", "been", "are", "was", "were", "you", "all", "any",
+  ]);
+  const words = normalize(blob)
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !stop.has(w));
+  const counts = new Map<string, number>();
+  for (const w of words) counts.set(w, (counts.get(w) ?? 0) + 1);
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([w]) => w)
+    .slice(0, 40);
 }
 
 function scoreText(text: string, keywords: string[]) {
   const n = normalize(text);
-  return keywords.reduce((acc, k) => acc + (n.includes(k) ? (k.includes(" ") ? 3 : 1) : 0), 0);
+  return keywords.reduce((s, k) => s + (n.includes(k) ? 1 : 0), 0);
 }
 
 export function tailorResumeForJob(
@@ -46,15 +36,20 @@ export function tailorResumeForJob(
   variantId: ResumeVariantId = "impact",
 ): TailoredResumeSnapshot {
   const base = getResumeVariant(variantId);
-  const keywords = extractKeywords(job);
+  const keywords = extractKeywords(
+    `${job.title} ${job.company} ${job.description} ${(job as { requirements?: string[] }).requirements?.join(" ") ?? ""} ${(job as { skills?: string[] }).skills?.join(" ") ?? ""}`,
+  );
+
   const corpus = [
     base.summary,
     base.headline,
-    ...base.expertise,
     ...base.outcomes,
     ...base.experienceBlocks,
+    ...base.expertise,
+    ...base.metrics.map((m) => `${m.label} ${m.detail}`),
+    profile.headline,
     profile.resumeSummary,
-    ...profile.skills,
+    ...(profile.skills ?? []),
   ].join(" ");
 
   const matchedKeywords = keywords.filter((k) => normalize(corpus).includes(k));
@@ -78,13 +73,21 @@ export function tailorResumeForJob(
       scoreText(`${b.label} ${b.detail}`, keywords),
   );
 
-  const tailoredHeadline = `${job.title.includes("VP") || job.title.includes("Director") || job.title.includes("Head") ? job.title.split(",")[0] : profile.headline.split("·")[0]?.trim()} · ${job.company} focus`;
+  // Headline stays candidate-owned (no target-company name baked in)
+  const tailoredHeadline =
+    base.headline ||
+    profile.headline ||
+    (job.title.includes("VP") ||
+    job.title.includes("Director") ||
+    job.title.includes("Head")
+      ? job.title.split(",")[0]!
+      : profile.headline);
 
+  // Summary = your story — no "Targeting X at Company" opener
   const tailoredSummary = [
-    `Targeting ${job.title} at ${job.company}.`,
     base.summary,
     matchedKeywords.length
-      ? `Aligned strengths: ${matchedKeywords.slice(0, 6).join(", ")}.`
+      ? `Emphasized for this role: ${matchedKeywords.slice(0, 6).join(", ")}.`
       : "",
   ]
     .filter(Boolean)

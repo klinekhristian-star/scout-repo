@@ -3,37 +3,59 @@ import { buildResumeDocx, downloadDocx } from "@/lib/docx-resume";
 import { buildResumePdf, downloadPdf, slugify } from "@/lib/pdf-resume";
 import type { Experience } from "@/lib/types";
 
+/**
+ * Build experience from YOUR career blocks (GTM Insights, ON24, etc.).
+ * Never invent the target employer as a past role.
+ */
 function snapshotToExperience(
   result: TailoredResumeSnapshot,
-  job: Job,
   profileLocation: string,
 ): Experience[] {
   const metrics = result.metrics ?? [];
   const blocks = result.experienceBlocks ?? [];
-  const selected: Experience = {
-    id: "selected",
-    company: job.company,
-    title: "Selected outcomes (role-aligned)",
-    location: profileLocation,
-    start: "",
-    end: "Present",
-    bullets: [
-      ...metrics.slice(0, 4).map((m) => `${m.metric} — ${m.label}: ${m.detail}`),
-      ...blocks.slice(0, 4),
-    ].filter(Boolean),
-  };
-  const rest = blocks.slice(4);
-  if (rest.length === 0) return [selected];
+  const roles: Experience[] = [];
+
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i]!;
+    const parts = block.split(/\s+[—–-]\s+/);
+    const company = (parts[0] || "Career").trim();
+    const rest = parts.slice(1).join(" — ").trim() || block;
+    roles.push({
+      id: `role-${i}`,
+      company,
+      title: rest.split(/[.]/)[0]?.slice(0, 90) || rest.slice(0, 90),
+      location: profileLocation,
+      start: "",
+      end: i === 0 ? "Present" : "",
+      bullets: [rest],
+    });
+  }
+
+  if (metrics.length) {
+    roles.unshift({
+      id: "metrics",
+      company: "Selected outcomes",
+      title: "Role-aligned metrics",
+      location: profileLocation,
+      start: "",
+      end: "",
+      bullets: metrics
+        .slice(0, 4)
+        .map((m) => `${m.metric} — ${m.label}: ${m.detail}`),
+    });
+  }
+
+  if (roles.length) return roles;
+
   return [
-    selected,
     {
       id: "career",
-      company: "Career highlights",
+      company: "Professional experience",
       title: result.tailoredHeadline,
       location: profileLocation,
       start: "",
       end: "",
-      bullets: rest,
+      bullets: blocks.slice(0, 6),
     },
   ];
 }
@@ -51,13 +73,13 @@ function toPayload(profile: Profile, job: Job, result: TailoredResumeSnapshot) {
     tailored: {
       summary: result.tailoredSummary,
       skills: result.prioritizedSkills ?? profile.skills,
-      experience: snapshotToExperience(result, job, profile.location),
+      experience: snapshotToExperience(result, profile.location),
       education: [
         {
           id: "edu-1",
-          school: "Executive career · GTM Insights Group · ON24",
-          degree: "Enterprise GTM · Digital engagement · MarTech",
-          year: "25+ years",
+          school: "Johns Hopkins University",
+          degree: "BA Political Science · Minor: The Writing Seminars",
+          year: "",
         },
       ],
       matchedKeywords: result.matchedKeywords,
