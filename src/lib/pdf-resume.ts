@@ -1,10 +1,5 @@
 import type { MasterResume, TailoredResume } from "./types";
 
-/**
- * Minimal PDF writer (Helvetica) — no extra deps.
- * Designed single-column resume layout for ATS-friendly parseability.
- */
-
 type Cmd = string;
 
 function esc(text: string) {
@@ -137,16 +132,6 @@ export function buildResumePdf(
   textAt(margin, y - 42, 8.5, contact, "F1");
   y -= 72;
 
-  setFill(0.06, 0.46, 0.43);
-  textAt(
-    margin,
-    y,
-    9,
-    `Tailored for ${tailored.targetRole} · ${tailored.targetCompany}  ·  ATS match ${tailored.matchScore}%`,
-    "F2",
-  );
-  y -= 18;
-
   section("Professional Summary");
   para(tailored.summary, 10, 13);
   y -= 6;
@@ -160,11 +145,13 @@ export function buildResumePdf(
     ensure(48);
     setFill(0.05, 0.09, 0.16);
     textAt(margin, y, 11, exp.title, "F2");
-    const right = `${exp.start} – ${exp.end}`;
-    textAt(pageWidth - margin - right.length * 5.2, y, 9, right, "F1");
+    const right = [exp.start, exp.end].filter(Boolean).join(" – ");
+    if (right) {
+      textAt(pageWidth - margin - right.length * 5.2, y, 9, right, "F1");
+    }
     y -= 14;
     setFill(0.06, 0.46, 0.43);
-    textAt(margin, y, 9.5, `${exp.company}  ·  ${exp.location}`, "F1");
+    textAt(margin, y, 9.5, exp.company, "F1");
     y -= 14;
     for (const b of exp.bullets) bullet(b);
     y -= 8;
@@ -177,17 +164,31 @@ export function buildResumePdf(
     textAt(margin, y, 10.5, edu.school, "F2");
     y -= 13;
     setFill(0.12, 0.14, 0.18);
-    textAt(margin, y, 9.5, `${edu.degree}  ·  ${edu.year}`, "F1");
+    textAt(
+      margin,
+      y,
+      9.5,
+      [edu.degree, edu.year].filter(Boolean).join("  ·  "),
+      "F1",
+    );
     y -= 16;
   }
 
-  if (tailored.matchedKeywords.length) {
-    section("Keyword Alignment");
-    para(
-      `Emphasized: ${tailored.matchedKeywords.slice(0, 14).join(", ")}.`,
-      9,
-      12,
-    );
+  if (tailored.matchedKeywords.length || tailored.targetRole) {
+    section("Review notes (delete before submitting)");
+    const bits: string[] = [];
+    if (tailored.targetRole || tailored.targetCompany) {
+      bits.push(
+        `Written for: ${[tailored.targetRole, tailored.targetCompany].filter(Boolean).join(" · ")}`,
+      );
+    }
+    if (tailored.matchedKeywords.length) {
+      bits.push(
+        `Keywords emphasized: ${tailored.matchedKeywords.slice(0, 14).join(", ")}`,
+      );
+    }
+    bits.push(`ATS alignment (internal): ${tailored.matchScore}%`);
+    para(bits.join("  |  "), 8, 11);
   }
 
   pages.push(cmds.join("\n"));
