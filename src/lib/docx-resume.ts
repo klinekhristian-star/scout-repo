@@ -6,10 +6,10 @@ import type { MasterResume, TailoredResume } from "./types";
 
 function xmlEsc(s: string): string {
   return (s || "")
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, """);
+    .replace(/&/g, "&" + "amp;")
+    .replace(/</g, "&" + "lt;")
+    .replace(/>/g, "&" + "gt;")
+    .replace(/"/g, "&" + "quot;");
 }
 
 function wPara(
