@@ -38,6 +38,7 @@ import {
 } from "@/lib/application-packet";
 import { buildInterviewKit, storyPlainText } from "@/lib/interview-kit";
 import { generateCoverLetter, scoreJob } from "@/lib/matching";
+import { TailoredExportButtons } from "@/components/tailored-export-buttons";
 import { buildResumePdf, downloadPdf, slugify } from "@/lib/pdf-resume";
 import { useJobStore } from "@/lib/store";
 import { listResumeVariants, tailorResumeForJob } from "@/lib/tailor-resume";
@@ -519,19 +520,15 @@ export function JobDetailSheet({
                   )}
                   Suggest tailored resume
                 </Button>
-                <Button
-                  className="sm:flex-1"
-                  variant="outline"
-                  disabled={busy !== null}
-                  onClick={() => void runPdf()}
-                >
-                  {busy === "pdf" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FileDown className="h-4 w-4" />
-                  )}
-                  Generate PDF
-                </Button>
+              <TailoredExportButtons
+                job={job}
+                profile={profile}
+                variantId={variantId}
+                tailored={tailored}
+                setTailored={setTailored}
+                persistTailor={persistTailor}
+                disabled={busy !== null}
+              />
               </div>
               {tailored && (
                 <div className="space-y-2 rounded-[var(--radius-md)] border border-border bg-surface p-3">
