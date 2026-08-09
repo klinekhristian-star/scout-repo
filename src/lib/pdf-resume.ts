@@ -110,12 +110,11 @@ export function buildResumePdf(
     lines.forEach((line, i) => {
       ensure(14);
       setFill(0.12, 0.14, 0.18);
-      textAt(margin, y, 10, i === 0 ? `•  ${line}` : `    ${line}`, "F1");
+      textAt(margin, y, 10, i === 0 ? `- ${line}` : `  ${line}`, "F1");
       y -= 13;
     });
   };
 
-  // Header band
   setFill(0.05, 0.09, 0.16);
   cmds.push(`${margin - 8} ${y - 52} ${contentWidth + 16} 64 re f`);
   setFill(1, 1, 1);
@@ -128,7 +127,7 @@ export function buildResumePdf(
     ...profile.links.slice(0, 2),
   ]
     .filter(Boolean)
-    .join("  ·  ");
+    .join(" | ");
   textAt(margin, y - 42, 8.5, contact, "F1");
   y -= 72;
 
@@ -137,7 +136,7 @@ export function buildResumePdf(
   y -= 6;
 
   section("Skills");
-  para(tailored.skills.join("  ·  "), 9.5, 12);
+  para(tailored.skills.join(" | "), 9.5, 12);
   y -= 6;
 
   section("Experience");
@@ -145,7 +144,7 @@ export function buildResumePdf(
     ensure(48);
     setFill(0.05, 0.09, 0.16);
     textAt(margin, y, 11, exp.title, "F2");
-    const right = [exp.start, exp.end].filter(Boolean).join(" – ");
+    const right = [exp.start, exp.end].filter(Boolean).join(" - ");
     if (right) {
       textAt(pageWidth - margin - right.length * 5.2, y, 9, right, "F1");
     }
@@ -168,7 +167,7 @@ export function buildResumePdf(
       margin,
       y,
       9.5,
-      [edu.degree, edu.year].filter(Boolean).join("  ·  "),
+      [edu.degree, edu.year].filter(Boolean).join(" | "),
       "F1",
     );
     y -= 16;
@@ -179,7 +178,7 @@ export function buildResumePdf(
     const bits: string[] = [];
     if (tailored.targetRole || tailored.targetCompany) {
       bits.push(
-        `Written for: ${[tailored.targetRole, tailored.targetCompany].filter(Boolean).join(" · ")}`,
+        `Written for: ${[tailored.targetRole, tailored.targetCompany].filter(Boolean).join(" | ")}`,
       );
     }
     if (tailored.matchedKeywords.length) {
@@ -188,7 +187,7 @@ export function buildResumePdf(
       );
     }
     bits.push(`ATS alignment (internal): ${tailored.matchScore}%`);
-    para(bits.join("  |  "), 8, 11);
+    para(bits.join(" | "), 8, 11);
   }
 
   pages.push(cmds.join("\n"));
