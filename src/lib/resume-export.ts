@@ -2,62 +2,17 @@ import type { Job, Profile, TailoredResumeSnapshot } from "@/data/types";
 import { buildResumeDocx, downloadDocx } from "@/lib/docx-resume";
 import { buildResumePdf, downloadPdf, slugify } from "@/lib/pdf-resume";
 import type { Experience } from "@/lib/types";
+import { rolesForVariant } from "@/data/resume-library";
+import type { ResumeVariantId } from "@/data/resume-library";
 
-/**
- * Build experience from YOUR career blocks (GTM Insights, ON24, etc.).
- * Never invent the target employer as a past role.
- */
-function snapshotToExperience(
+function experienceFromSnapshot(
   result: TailoredResumeSnapshot,
-  profileLocation: string,
 ): Experience[] {
-  const metrics = result.metrics ?? [];
-  const blocks = result.experienceBlocks ?? [];
-  const roles: Experience[] = [];
-
-  for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i]!;
-    const parts = block.split(/\s+[—–-]\s+/);
-    const company = (parts[0] || "Career").trim();
-    const rest = parts.slice(1).join(" — ").trim() || block;
-    roles.push({
-      id: `role-${i}`,
-      company,
-      title: rest.split(/[.]/)[0]?.slice(0, 90) || rest.slice(0, 90),
-      location: profileLocation,
-      start: "",
-      end: i === 0 ? "Present" : "",
-      bullets: [rest],
-    });
+  if (result.experience?.length) {
+    return result.experience.map((r) => ({ ...r, location: "" }));
   }
-
-  if (metrics.length) {
-    roles.unshift({
-      id: "metrics",
-      company: "Selected outcomes",
-      title: "Role-aligned metrics",
-      location: profileLocation,
-      start: "",
-      end: "",
-      bullets: metrics
-        .slice(0, 4)
-        .map((m) => `${m.metric} — ${m.label}: ${m.detail}`),
-    });
-  }
-
-  if (roles.length) return roles;
-
-  return [
-    {
-      id: "career",
-      company: "Professional experience",
-      title: result.tailoredHeadline,
-      location: profileLocation,
-      start: "",
-      end: "",
-      bullets: blocks.slice(0, 6),
-    },
-  ];
+  const id = (result.baseVariantId || "impact") as ResumeVariantId;
+  return rolesForVariant(id).map((r) => ({ ...r, location: "" }));
 }
 
 function toPayload(profile: Profile, job: Job, result: TailoredResumeSnapshot) {
@@ -73,12 +28,13 @@ function toPayload(profile: Profile, job: Job, result: TailoredResumeSnapshot) {
     tailored: {
       summary: result.tailoredSummary,
       skills: result.prioritizedSkills ?? profile.skills,
-      experience: snapshotToExperience(result, profile.location),
+      experience: experienceFromSnapshot(result),
       education: [
         {
           id: "edu-1",
-          school: "Johns Hopkins University",
-          degree: "BA Political Science · Minor: The Writing Seminars",
+          school: "The Johns Hopkins University",
+          degree:
+            "Bachelor of Arts, Political Science | Minor: The Writing Seminars | Dean's List",
           year: "",
         },
       ],
