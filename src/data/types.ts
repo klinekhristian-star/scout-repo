@@ -148,6 +148,8 @@ export interface TailoredResumeSnapshot {
   experienceBlocks?: string[];
   guidance?: string[];
   metrics?: Array<{ metric: string; label: string; detail: string }>;
+  /** Real career roles with dates — preferred source for PDF/DOCX */
+  experience?: import("@/lib/types").Experience[];
 }
 
 /** Network / outreach log entry on a pipeline application */
@@ -204,11 +206,8 @@ export interface Application {
   agentId?: string;
   coverLetter?: string;
   tailoredResume?: TailoredResumeSnapshot;
-  /** Warm-path / network log for this role */
   outreach?: OutreachEntry[];
-  /** Short LinkedIn DM / connection note for this role */
   linkedInNote?: string;
-  /** Who can introduce you (free text) */
   referralPath?: string;
 }
 
