@@ -1,3 +1,4 @@
+import { isUsJobLocation } from "@/lib/us-jobs";
 import type {
   Job,
   MatchBreakdown,
@@ -100,7 +101,6 @@ export function scoreJob(job: Job, profile: Profile): MatchBreakdown {
     else salaryScore = 35;
   }
 
-  // Map years to preferred seniority band (exec profile → director/lead/staff)
   const preferred: Seniority =
     profile.yearsExperience >= 20
       ? "director"
@@ -143,6 +143,8 @@ export function scoreJob(job: Job, profile: Profile): MatchBreakdown {
 }
 
 export function jobMatchesAgent(job: Job, agent: SearchAgent, profile: Profile) {
+  // Product rule: US-only pipeline
+  if (!isUsJobLocation(job.location, job.description)) return false;
   if (agent.workModes.length && !agent.workModes.includes(job.workMode)) {
     return false;
   }
@@ -172,7 +174,6 @@ export function jobMatchesAgent(job: Job, agent: SearchAgent, profile: Profile) 
   if (agent.skills.length) {
     const { matched } = skillMatch(job.skills, agent.skills);
     if (matched.length === 0) {
-      // soft: allow title/query hits to carry
       const hay = `${job.title} ${job.description}`.toLowerCase();
       if (!agent.skills.some((s) => hay.includes(s.toLowerCase()))) return false;
     }
