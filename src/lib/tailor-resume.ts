@@ -37,6 +37,7 @@ function scoreText(text: string, keywords: string[]) {
  * Tailor = keep YOUR real roles/dates intact.
  * Rank bullets within each role for the job; reorder skills.
  * Never invent the target employer as a past role.
+ * Applies to Impact, Full Executive, and Compact variants.
  */
 export function tailorResumeForJob(
   job: Job,
@@ -80,7 +81,15 @@ export function tailorResumeForJob(
     (a, b) => scoreText(b, keywords) - scoreText(a, keywords),
   );
 
-  const tailoredHeadline = base.headline;
+  // Role-tailored headline for every variant (Impact, Full, Compact)
+  const roleTitle = (job.title || "").trim();
+  const isExec = /\b(VP|Vice President|Director|Head|Principal|Chief|SVP|EVP)\b/i.test(
+    roleTitle,
+  );
+  const tailoredHeadline = isExec
+    ? roleTitle.split(/[|\\-]/)[0]!.trim().slice(0, 90)
+    : base.headline ||
+      "Enterprise Go-to-Market and Digital Customer Engagement Executive";
   const tailoredSummary = base.summary;
 
   const experienceBlocks = roles.flatMap((r) =>
@@ -88,10 +97,10 @@ export function tailorResumeForJob(
   );
 
   const plainText = [
-    profile.name,
+    "KHRISTIAN KLINE",
     tailoredHeadline,
-    profile.email,
-    profile.location,
+    "Charleston, SC | Remote / Hybrid | Open to Relocation",
+    "(864) 547-5974 | klinekhristian@gmail.com | linkedin.com/in/khriskline | gtm-insights.com",
     "",
     "SUMMARY",
     tailoredSummary,
