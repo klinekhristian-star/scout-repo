@@ -16,7 +16,10 @@ export interface ResumeVariant {
   metrics: Array<{ metric: string; label: string; detail: string }>;
 }
 
-/** Canonical career history — source of truth for all tailored resumes */
+/**
+ * Canonical career history — refined from Executive Impact + Full Executive resumes.
+ * Bullets are metric-led, single-idea, ATS-friendly. No city. Dates preserved.
+ */
 export const CAREER_ROLES: Experience[] = [
   {
     id: "gtm-insights",
@@ -26,10 +29,9 @@ export const CAREER_ROLES: Experience[] = [
     start: "June 2026",
     end: "Present",
     bullets: [
-      "Founded an executive advisory practice helping enterprise organizations improve revenue and audience growth by connecting go-to-market strategy with digital execution.",
-      "Partner with executive teams to identify friction in the buyer or learner journey and transform digital experiences, analytics, and engagement strategy into measurable gains in acquisition, retention, and revenue.",
-      "Leading go-to-market strategy, learner acquisition, and digital presence for a Skilled Trades School's Driller Academy, backed by a $116,000 Wisconsin Fast Forward Workforce Grant.",
-      "Developing frameworks for GTM maturity assessments, competitive intelligence, digital experience optimization, and acquisition/retention analytics.",
+      "Advise enterprise leadership on closing the gap between GTM strategy and digital execution—turning experience, analytics, and engagement programs into measurable acquisition, retention, and revenue gains.",
+      "Lead GTM strategy, learner acquisition, and digital presence for a skilled-trades Driller Academy backed by a $116K Wisconsin Fast Forward Workforce Grant.",
+      "Build reusable frameworks for GTM maturity assessments, competitive intelligence, digital experience optimization, and acquisition/retention analytics.",
     ],
   },
   {
@@ -40,11 +42,11 @@ export const CAREER_ROLES: Experience[] = [
     start: "2022",
     end: "June 2026",
     bullets: [
-      "Grew the Microsoft account from an initial product demo to $2.1M in annual revenue over seven years across webcasting and virtual environments; instrumental in migrating Microsoft to ON24's GoLive platform.",
-      "Designed and managed Home Depot's Path to Pro program—a free skilled trades training initiative including a companion site for youth ages 14–18; grew the account from ~$200K to $400K by expanding the youth program and driving greater utilization.",
-      "Directed 50+ global virtual events and 500+ enterprise webcasts annually, representing $1.8M in annual revenue, across North America, EMEA, APAC, and Latin America.",
-      "Led integrations with Salesforce, Marketo, Eloqua, and Microsoft Dynamics; coordinated SAML/SSO implementation for enterprise clients.",
-      "Built trusted executive relationships with Dell, SAP, IBM, Lenovo, Citibank, and Merck; guided clients on digital engagement strategy, webinar optimization, and audience engagement.",
+      "Grew Microsoft from an initial product demo to $2.1M ARR over seven years across webcasting and virtual environments; led migration to ON24 GoLive.",
+      "Designed and scaled Home Depot Path to Pro (skilled-trades training + youth companion program ages 14–18), growing the account from ~$200K to $400K through utilization and program expansion.",
+      "Directed 50+ global virtual events and 500+ enterprise webcasts annually (~$1.8M revenue) across NA, EMEA, APAC, and Latin America for executive communications, launches, and demand gen.",
+      "Led MarTech integrations (Salesforce, Marketo, Eloqua, Microsoft Dynamics) and coordinated SAML/SSO for complex enterprise clients with Engineering.",
+      "Built trusted advisory relationships with Dell, SAP, IBM, Lenovo, Citibank, and Merck on digital engagement strategy, webinar optimization, and audience growth.",
       "Partnered with Product and Engineering to influence platform roadmap; delivered executive analytics that informed customer engagement and marketing investment decisions.",
     ],
   },
@@ -56,9 +58,9 @@ export const CAREER_ROLES: Experience[] = [
     start: "2012",
     end: "2022",
     bullets: [
-      "Progressed from Virtual Event Manager to Senior Manager, Virtual Events (led a team of 5), then Senior Manager, VS Operations.",
-      "Served as strategic point of contact for top-tier enterprise clients, bridging client goals with platform capabilities and ensuring high-touch delivery for complex global engagements.",
-      "Standardized event execution processes across the team to support scaling demand.",
+      "Progressed Virtual Event Manager → Senior Manager, Virtual Events (led team of 5) → Senior Manager, VS Operations, supporting top-tier enterprise delivery.",
+      "Served as strategic point of contact bridging client goals with platform capabilities for the most complex global engagements.",
+      "Standardized event execution processes to scale quality and throughput as demand grew.",
     ],
   },
   {
@@ -69,8 +71,8 @@ export const CAREER_ROLES: Experience[] = [
     start: "2011",
     end: "2012",
     bullets: [
-      "Led delivery and client strategy for interactive digital experiences, managing cross-functional teams of producers, designers, and developers alongside a Webby Award–winning team.",
-      "Primary client lead for cultural and institutional clients including the Mint Museum, WDAV Classical Radio, and Reynolda House Museum of American Art.",
+      "Led end-to-end delivery of interactive digital experiences with cross-functional teams of producers, designers, and developers alongside a Webby Award–winning studio.",
+      "Primary client lead for institutional programs including the Mint Museum, WDAV Classical Radio, and Reynolda House Museum of American Art.",
     ],
   },
   {
@@ -81,8 +83,9 @@ export const CAREER_ROLES: Experience[] = [
     start: "2007",
     end: "2012",
     bullets: [
-      "Founded digital consultancy focused on interactive technology, strategic partnerships, and customer experience.",
-      "Directed digital transformation for RoundPoint Financial; secured multi-year Hard Rock Cafe sponsorship for Little Steven's Underground Garage.",
+      "Founded digital consultancy focused on interactive technology, strategic partnerships, and customer experience for growth-stage and enterprise clients.",
+      "Directed digital transformation for RoundPoint Financial (portals, web, mobile, interactive video).",
+      "Secured multi-year $500K Hard Rock Cafe title sponsorship for Little Steven's Underground Garage / Renegade Nation.",
     ],
   },
   {
@@ -93,8 +96,9 @@ export const CAREER_ROLES: Experience[] = [
     start: "2002",
     end: "2007",
     bullets: [
-      "Key role launching Tomorrow Unlimited for the Tribeca Film Festival; digital strategy and sponsorship with Apple, Canon, Getty Images, Diesel, and others.",
-      "Generated $1.2M+ annual revenue and expanded RESFEST into 40+ international cities; founded RES LAB integrated marketing division.",
+      "Helped launch Tomorrow Unlimited for the Tribeca Film Festival; drove digital strategy and sponsorship with Apple, Canon, Getty Images, Diesel, and other national brands.",
+      "Generated $1.2M+ annual revenue at RES Media and expanded RESFEST into 40+ international cities; founded RES LAB integrated marketing division.",
+      "As Associate Publisher of RES Magazine, generated ~$800K annual advertising revenue; produced major campaigns for Panasonic, Nike, InBev, Diesel, Canon, and Getty.",
     ],
   },
 ];
@@ -113,7 +117,7 @@ const EXPERTISE = [
 ];
 
 const SUMMARY =
-  "Enterprise go-to-market executive with more than 25 years leading digital customer engagement and GTM strategy—from New York's Silicon Alley through enterprise SaaS and now executive advisory. Known for helping Fortune 500 organizations transform complex technology into measurable business outcomes by aligning GTM strategy, customer experience, marketing technology, and executive decision-making, with a track record of growing enterprise accounts from initial engagement to multi-million-dollar programs. During nearly 15 years at ON24, served as a trusted strategic advisor to Microsoft, Home Depot, Dell, SAP, IBM, Lenovo, Citibank, and Merck. Today, as Founder of GTM Insights Group, advises executive teams on closing the gap between go-to-market strategy and digital execution.";
+  "Enterprise go-to-market executive with 25+ years leading digital customer engagement—from New York's Silicon Alley through enterprise SaaS and executive advisory. Known for helping Fortune 500 organizations turn complex platforms into measurable business outcomes by aligning GTM strategy, customer experience, MarTech, and executive decision-making. Nearly 15 years at ON24 as a trusted advisor to Microsoft, Home Depot, Dell, SAP, IBM, Lenovo, Citibank, and Merck. Founder of GTM Insights Group, advising leadership teams on closing the gap between GTM strategy and digital execution.";
 
 export const RESUME_VARIANTS: ResumeVariant[] = [
   {
@@ -130,12 +134,12 @@ export const RESUME_VARIANTS: ResumeVariant[] = [
       {
         metric: "$2.1M ARR",
         label: "Microsoft account",
-        detail: "Grew ON24 Microsoft relationship over seven years",
+        detail: "Demo to $2.1M over seven years; GoLive migration",
       },
       {
         metric: "2× Account",
         label: "Home Depot Path to Pro",
-        detail: "Grew ~$200K → $400K skilled-trades program",
+        detail: "~$200K → $400K skilled-trades program",
       },
       {
         metric: "$1.8M / yr",
