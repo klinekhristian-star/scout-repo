@@ -132,9 +132,6 @@ function buildDocumentXml(
   body.push(wPara(profile.headline || tailored.targetRole, { center: true, size: 20, color: "0F766E", spaceAfter: 40 }));
   const contact = [profile.location, profile.email, profile.phone, ...(profile.links || [])].filter(Boolean).join("  ·  ");
   if (contact) body.push(wPara(contact, { center: true, size: 16, color: "4B5563", spaceAfter: 120 }));
-  if (tailored.targetRole || tailored.targetCompany) {
-    body.push(wPara(`Target: ${[tailored.targetRole, tailored.targetCompany].filter(Boolean).join(" · ")}`, { size: 16, color: "6B7280", spaceAfter: 80 }));
-  }
   body.push(wHeading("Positioning"));
   body.push(wPara(tailored.summary, { size: 18, spaceAfter: 100 }));
   if (tailored.skills?.length) {
@@ -154,11 +151,30 @@ function buildDocumentXml(
     body.push(wHeading("Education"));
     for (const ed of tailored.education) body.push(wPara([ed.school, ed.degree, ed.year].filter(Boolean).join(" · "), { size: 18, spaceAfter: 60 }));
   }
-  if (tailored.matchedKeywords?.length) {
-    body.push(wHeading("ATS keywords emphasized"));
-    body.push(wPara(tailored.matchedKeywords.join(" · "), { size: 16, color: "4B5563", spaceAfter: 80 }));
+  // Review-only notes — delete this section before exporting to PDF / submitting
+  const reviewBits: string[] = [];
+  if (tailored.targetRole || tailored.targetCompany) {
+    reviewBits.push(
+      `Written for: ${[tailored.targetRole, tailored.targetCompany].filter(Boolean).join(" · ")}`,
+    );
   }
-  body.push(wPara(`ATS alignment score: ${tailored.matchScore}% · Edit this Word file, then export PDF for applications.`, { size: 14, color: "9CA3AF", spaceAfter: 40 }));
+  if (tailored.matchedKeywords?.length) {
+    reviewBits.push(
+      `Keywords emphasized: ${tailored.matchedKeywords.join(" · ")}`,
+    );
+  }
+  if (tailored.missingKeywords?.length) {
+    reviewBits.push(
+      `Optional gaps to consider (only if true): ${tailored.missingKeywords.slice(0, 6).join(", ")}`,
+    );
+  }
+  reviewBits.push(
+    `ATS alignment (internal): ${tailored.matchScore}% — edit formatting, delete this section, then Save as PDF to apply.`,
+  );
+  body.push(wHeading("Review notes — delete before submitting"));
+  for (const line of reviewBits) {
+    body.push(wPara(line, { size: 14, color: "9CA3AF", spaceAfter: 40 }));
+  }
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
