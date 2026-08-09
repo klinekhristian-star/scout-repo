@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import type { Job } from "@/data/types";
 import { matchesJobQuery } from "@/lib/boolean-search";
 import { scoreJob } from "@/lib/matching";
+import { isUsJobLocation } from "@/lib/us-jobs";
 import { useJobCatalog, useJobStore } from "@/lib/store";
 
 export const Route = createFileRoute("/discover")({
@@ -41,6 +42,8 @@ function DiscoverPage() {
 
   const results = useMemo(() => {
     let list = catalog.filter((job) => {
+      // US-only: onsite/hybrid in US, or remote without non-US region
+      if (!isUsJobLocation(job.location, job.description)) return false;
       if (query.trim() && !matchesJobQuery(job, query)) return false;
       if (workMode !== "all" && job.workMode !== workMode) return false;
       if (seniority !== "all" && job.seniority !== seniority) return false;
@@ -62,7 +65,7 @@ function DiscoverPage() {
     <AppShell>
       <PageHeader
         title="Discover"
-        subtitle="Search live boards, company ATS listings, and roles you paste yourself. Boolean operators supported."
+        subtitle="US-only roles from live boards, company ATS listings, and jobs you paste. Boolean operators supported."
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
@@ -178,7 +181,7 @@ function DiscoverPage() {
 
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted">
         <span>
-          {results.length} roles
+          {results.length} US roles
           {lastSyncAt ? ` · last sync ${new Date(lastSyncAt).toLocaleString()}` : ""}
         </span>
         {boardStatuses.slice(0, 6).map((s) => (
@@ -198,7 +201,7 @@ function DiscoverPage() {
         ))}
         {results.length === 0 && (
           <div className="rounded-[var(--radius-lg)] border border-border p-10 text-center text-sm text-muted">
-            No roles match. Sync boards, loosen filters, or add a job link with full description.
+            No US roles match. Sync boards, loosen filters, or add a job link with full description.
           </div>
         )}
       </div>
