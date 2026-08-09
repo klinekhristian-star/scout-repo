@@ -115,21 +115,19 @@ export function buildResumePdf(
     });
   };
 
+  // Fixed executive header:
+  // NAME / tailored headline / location line / phone email linkedin web
   setFill(0.05, 0.09, 0.16);
-  cmds.push(`${margin - 8} ${y - 52} ${contentWidth + 16} 64 re f`);
+  cmds.push(`${margin - 8} ${y - 68} ${contentWidth + 16} 80 re f`);
   setFill(1, 1, 1);
-  textAt(margin, y - 8, 20, profile.fullName, "F2");
-  textAt(margin, y - 26, 10, profile.headline, "F1");
-  const contact = [
-    profile.email,
-    profile.phone,
-    profile.location,
-    ...profile.links.slice(0, 2),
-  ]
+  textAt(margin, y - 6, 18, profile.fullName.toUpperCase(), "F2");
+  textAt(margin, y - 22, 10, profile.headline, "F1");
+  textAt(margin, y - 36, 8.5, profile.location, "F1");
+  const contact = [profile.phone, profile.email, ...profile.links.slice(0, 2)]
     .filter(Boolean)
     .join(" | ");
-  textAt(margin, y - 42, 8.5, contact, "F1");
-  y -= 72;
+  textAt(margin, y - 50, 8.5, contact, "F1");
+  y -= 88;
 
   section("Professional Summary");
   para(tailored.summary, 10, 13);
