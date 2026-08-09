@@ -84,7 +84,7 @@ export function tailorResumeForJob(
   const tailoredSummary = base.summary;
 
   const experienceBlocks = roles.flatMap((r) =>
-    r.bullets.map((b) => `${r.company} — ${b}`),
+    r.bullets.map((b) => `${r.company} - ${b}`),
   );
 
   const plainText = [
@@ -98,12 +98,12 @@ export function tailorResumeForJob(
     "",
     "EXPERIENCE",
     ...roles.flatMap((r) => [
-      `${r.company} | ${r.title} | ${r.start} – ${r.end}`,
-      ...r.bullets.map((b) => `• ${b}`),
+      `${r.company} | ${r.title} | ${r.start} - ${r.end}`,
+      ...r.bullets.map((b) => `- ${b}`),
       "",
     ]),
     "CORE EXPERTISE",
-    prioritizedSkills.join(" · "),
+    prioritizedSkills.join(" | "),
   ].join("\n");
 
   const atsScore = Math.min(
@@ -127,7 +127,7 @@ export function tailorResumeForJob(
     prioritizedSkills: prioritizedSkills.slice(0, 12),
     experienceBlocks,
     guidance: [
-      "Experience is your real chronology — bullets reordered for this posting.",
+      "Experience is your real chronology - bullets reordered for this posting.",
       missingKeywords.length
         ? `If truthful, consider proof points for: ${missingKeywords.slice(0, 4).join(", ")}.`
         : "Coverage against the posting is strong.",
