@@ -124,7 +124,7 @@ export const RESUME_VARIANTS: ResumeVariant[] = [
     name: "Executive Impact",
     description: "One-page metrics-forward; core roles only",
     headline:
-      "Enterprise Go-to-Market Executive | Customer Engagement | Marketing Technology",
+      "Enterprise Go-to-Market and Digital Customer Engagement Executive",
     summary: SUMMARY,
     expertise: EXPERTISE,
     roleIds: ["gtm-insights", "on24-sde", "on24-earlier", "tribeca-res"],
@@ -133,7 +133,7 @@ export const RESUME_VARIANTS: ResumeVariant[] = [
       {
         metric: "$2.1M ARR",
         label: "Microsoft account",
-        detail: "Demo to $2.1M over seven years; GoLive migration",
+        detail: "Demo to $2.1M over 7 years; GoLive migration",
       },
       {
         metric: "2x Account",
@@ -157,7 +157,7 @@ export const RESUME_VARIANTS: ResumeVariant[] = [
     name: "Full Executive",
     description: "Full chronology for traditional ATS forms",
     headline:
-      "Enterprise Go-to-Market Executive | Customer Engagement | MarTech | SaaS",
+      "Enterprise Go-to-Market and Digital Customer Engagement Executive",
     summary: SUMMARY,
     expertise: EXPERTISE,
     roleIds: [
@@ -169,19 +169,52 @@ export const RESUME_VARIANTS: ResumeVariant[] = [
       "tribeca-res",
     ],
     maxBulletsPerRole: 6,
-    metrics: [],
+    metrics: [
+      {
+        metric: "$2.1M ARR",
+        label: "Microsoft account",
+        detail: "Demo to $2.1M over 7 years; GoLive migration",
+      },
+      {
+        metric: "2x Account",
+        label: "Home Depot Path to Pro",
+        detail: "$200K to $400K skilled-trades program",
+      },
+      {
+        metric: "$1.8M / yr",
+        label: "Global virtual events",
+        detail: "50+ events and 500+ webcasts annually",
+      },
+      {
+        metric: "$1.2M+",
+        label: "Earlier revenue",
+        detail: "RES Media and RESFEST expansion",
+      },
+    ],
   },
   {
     id: "compact",
     name: "Compact",
     description: "Tight summary for quick applications",
-    headline: "GTM and Digital Engagement Executive",
+    headline:
+      "Enterprise Go-to-Market and Digital Customer Engagement Executive",
     summary:
-      "Enterprise GTM and digital engagement leader. ON24 alumni; founder of GTM Insights Group. Specializes in virtual events, MarTech, and executive advisory for B2B growth.",
-    expertise: EXPERTISE.slice(0, 6),
-    roleIds: ["gtm-insights", "on24-sde"],
+      "Enterprise GTM and digital engagement executive with 25+ years spanning Silicon Alley, enterprise SaaS, and advisory. ON24 alumni who grew Microsoft to $2.1M ARR and scaled global virtual event portfolios (~$1.8M/yr). Founder of GTM Insights Group advising leadership on GTM strategy and digital execution.",
+    expertise: EXPERTISE.slice(0, 8),
+    roleIds: ["gtm-insights", "on24-sde", "tribeca-res"],
     maxBulletsPerRole: 3,
-    metrics: [],
+    metrics: [
+      {
+        metric: "$2.1M ARR",
+        label: "Microsoft account",
+        detail: "Demo to $2.1M over 7 years",
+      },
+      {
+        metric: "$1.8M / yr",
+        label: "Global virtual events",
+        detail: "50+ events and 500+ webcasts annually",
+      },
+    ],
   },
 ];
 
