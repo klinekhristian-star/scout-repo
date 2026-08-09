@@ -35,12 +35,6 @@ export type AtsProvider = "greenhouse" | "lever" | "ashby" | "workday";
 export interface AtsTarget {
   id: string;
   provider: AtsProvider;
-  /**
-   * Board identifier:
-   * - greenhouse / lever / ashby: board token (e.g. stripe, linear)
-   * - workday: careers site host/path
-   *   e.g. nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite
-   */
   slug: string;
   company: string;
   enabled: boolean;
@@ -63,7 +57,6 @@ export interface Job {
   benefits: string[];
   source: string;
   postedAt: string;
-  /** Canonical apply / listing URL (absolute https preferred) */
   url: string;
   department?: string;
   applicants?: number;
@@ -148,11 +141,9 @@ export interface TailoredResumeSnapshot {
   experienceBlocks?: string[];
   guidance?: string[];
   metrics?: Array<{ metric: string; label: string; detail: string }>;
-  /** Real career roles with dates — preferred source for PDF/DOCX */
   experience?: import("@/lib/types").Experience[];
 }
 
-/** Network / outreach log entry on a pipeline application */
 export type OutreachChannel =
   | "linkedin"
   | "email"
@@ -179,7 +170,6 @@ export interface OutreachEntry {
   updatedAt: string;
 }
 
-/** STAR interview story in the personal story bank */
 export interface InterviewStory {
   id: string;
   title: string;
@@ -192,6 +182,13 @@ export interface InterviewStory {
   metrics?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ScreeningAnswer {
+  id: string;
+  question: string;
+  answer: string;
+  generatedAt?: string;
 }
 
 export interface Application {
@@ -209,6 +206,8 @@ export interface Application {
   outreach?: OutreachEntry[];
   linkedInNote?: string;
   referralPath?: string;
+  /** Screening / application form questions + drafted answers */
+  screeningAnswers?: ScreeningAnswer[];
 }
 
 export interface ActivityEvent {
