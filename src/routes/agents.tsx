@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { defaultSearchAgents } from "@/data/resume-tracks";
 import type { AgentFrequency, Seniority, WorkMode } from "@/data/types";
 import { useJobStore } from "@/lib/store";
 
@@ -20,23 +21,78 @@ function AgentsPage() {
   const updateAgent = useJobStore((s) => s.updateAgent);
   const deleteAgent = useJobStore((s) => s.deleteAgent);
   const runAgent = useJobStore((s) => s.runAgent);
+  const runAllAgents = useJobStore((s) => s.runAllAgents);
   const runningAgentId = useJobStore((s) => s.runningAgentId);
   const [showNew, setShowNew] = useState(false);
   const [name, setName] = useState("");
   const [query, setQuery] = useState("");
+  const [installing, setInstalling] = useState(false);
+
+  const installSix = () => {
+    setInstalling(true);
+    try {
+      for (const a of agents) deleteAgent(a.id);
+      for (const a of defaultSearchAgents()) {
+        addAgent({
+          name: a.name,
+          query: a.query,
+          locations: a.locations,
+          workModes: a.workModes,
+          seniorities: a.seniorities,
+          skills: a.skills,
+          sources: a.sources,
+          frequency: a.frequency,
+          enabled: true,
+          minMatchScore: a.minMatchScore,
+          autoSave: false,
+        });
+      }
+      toast.success("Installed 6 resume agents — run each from this page");
+    } finally {
+      setInstalling(false);
+    }
+  };
 
   return (
     <AppShell>
       <PageHeader
         title="Search agents"
-        subtitle="Automations that scan your catalog for matches, score them, and optionally auto-save to the pipeline."
+        subtitle="One agent per resume. Run individually against the live catalog."
         actions={
-          <Button size="sm" onClick={() => setShowNew((v) => !v)}>
-            <Plus className="h-3.5 w-3.5" />
-            New agent
-          </Button>
+          <>
+            <Button size="sm" variant="secondary" disabled={installing} onClick={installSix}>
+              Install 6 resume agents
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!!runningAgentId || agents.length === 0}
+              onClick={async () => {
+                const r = await runAllAgents();
+                toast.success(`Ran ${r.agents} agents · ${r.newMatches} new matches`);
+              }}
+            >
+              Run all
+            </Button>
+            <Button size="sm" onClick={() => setShowNew((v) => !v)}>
+              <Plus className="h-3.5 w-3.5" />
+              New agent
+            </Button>
+          </>
         }
       />
+
+      {agents.length === 0 && (
+        <Card className="mb-4 border-primary/30">
+          <CardContent className="p-4 text-sm">
+            No agents yet.{" "}
+            <button className="underline font-medium" onClick={installSix}>
+              Install the 6 resume agents
+            </button>
+            {" "}so you can run Account/Events, CS, Digital Events, Master, Program, and Sales separately.
+          </CardContent>
+        </Card>
+      )}
 
       {showNew && (
         <Card className="mb-4">
@@ -51,15 +107,15 @@ function AgentsPage() {
                   addAgent({
                     name: name.trim(),
                     query: query.trim(),
-                    locations: ["Remote"],
+                    locations: ["United States", "Remote"],
                     workModes: ["remote", "hybrid"] as WorkMode[],
-                    seniorities: ["director", "lead", "senior"] as Seniority[],
+                    seniorities: ["mid", "senior", "staff", "lead", "director"] as Seniority[],
                     skills: [],
                     sources: [],
                     frequency: "daily" as AgentFrequency,
                     enabled: true,
-                    minMatchScore: 65,
-                    autoSave: true,
+                    minMatchScore: 55,
+                    autoSave: false,
                   });
                   toast.success("Agent created");
                   setName("");
@@ -88,6 +144,10 @@ function AgentsPage() {
                   <Badge variant="outline">min {a.minMatchScore}%</Badge>
                 </div>
                 <p className="text-sm text-muted mt-1 truncate">{a.query}</p>
+                <p className="text-xs text-muted mt-1">
+                  {a.skills.slice(0, 4).join(" · ")}
+                  {a.skills.length > 4 ? " …" : ""}
+                </p>
                 <p className="text-xs text-muted mt-1">
                   Last run matches: {a.lastMatchCount} · lifetime {a.totalMatches}
                   {a.lastRunAt ? ` · ${new Date(a.lastRunAt).toLocaleString()}` : ""}
