@@ -1,8 +1,7 @@
-import type { SearchAgent, Seniority, WorkMode } from "@/data/types";
+import type { Profile, SearchAgent, Seniority, WorkMode } from "@/data/types";
 
 /**
  * Search tracks aligned to the six live resume variants.
- * Board sync + agents use these titles / queries — not generic GTM exec titles.
  */
 export const RESUME_TRACKS = [
   {
@@ -147,6 +146,64 @@ export const ALL_TRACK_TITLES: string[] = [
 
 export const DEFAULT_BOARD_QUERY =
   "account manager OR customer success OR digital events OR virtual events producer OR program manager OR account director OR strategic events";
+
+export const DEFAULT_PROFILE_SKILLS = [
+  "Named-account growth",
+  "Renewals and expansion",
+  "Customer success",
+  "Adoption and utilization",
+  "Executive QBRs",
+  "Digital events production",
+  "Virtual and hybrid events",
+  "Webcast production",
+  "Run-of-show",
+  "Rehearsals and live ops",
+  "Speaker and vendor coordination",
+  "Program delivery",
+  "Project management",
+  "Salesforce",
+  "ON24",
+  "Marketo",
+  "Eloqua",
+  "Microsoft Dynamics",
+  "SSO",
+  "ChatGPT and Copilot",
+  "Sponsorship sales",
+  "Client services",
+];
+
+export const DEFAULT_RESUME_SUMMARY =
+  "Account manager and digital events producer with 25 years growing named accounts through programs, sponsorships, and live production. Fourteen years at ON24 partnering with Sales on Enterprise and SMB pitches and renewals — Microsoft GPS learning and certification to $2.1M ARR — and producing 50+ virtual/hybrid events and 500+ webcasts a year. Open to Account Manager, Producer, Client Services, CSM, Program Manager, and Events roles in Columbia, SC or remote.";
+
+export function defaultScoutProfile(): Profile {
+  return {
+    name: "Khristian Kline",
+    email: "klinekhristian@gmail.com",
+    headline:
+      "Account Manager | Digital Events Producer | Customer Success | Program Delivery",
+    location: "Columbia, SC",
+    openToRemote: true,
+    openToHybrid: true,
+    openToOnsite: true,
+    targetTitles: [...ALL_TRACK_TITLES],
+    skills: [...DEFAULT_PROFILE_SKILLS],
+    yearsExperience: 25,
+    salaryMin: 125000,
+    preferredLocations: [
+      "Remote",
+      "Columbia",
+      "South Carolina",
+      "Charleston",
+      "Charlotte",
+      "Atlanta",
+      "Southeast",
+      "United States",
+    ],
+    resumeSummary: DEFAULT_RESUME_SUMMARY,
+    autoSaveMatchesAbove: 75,
+    notifyOnNewMatches: true,
+  };
+}
 
 export function defaultSearchAgents(): SearchAgent[] {
   const now = new Date().toISOString();
