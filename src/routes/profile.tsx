@@ -20,6 +20,7 @@ import {
   parseScoutBackup,
 } from "@/lib/backup";
 import { BOARD_LABELS, TOGGLE_BOARD_IDS } from "@/lib/job-boards/meta";
+import { defaultScoutProfile, DEFAULT_BOARD_QUERY } from "@/data/resume-tracks";
 import { useJobCatalog, useJobStore } from "@/lib/store";
 import { listResumeVariants } from "@/lib/tailor-resume";
 
@@ -43,6 +44,12 @@ function ProfilePage() {
   const lastSyncAt = useJobStore((s) => s.lastSyncAt);
   const catalog = useJobCatalog();
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const loadResumeProfile = () => {
+    setProfile(defaultScoutProfile());
+    setBoardSettings({ defaultQuery: DEFAULT_BOARD_QUERY });
+    toast.success("Profile loaded from the six resume tracks");
+  };
 
   const doExport = () => {
     downloadBackup(
@@ -82,9 +89,12 @@ function ProfilePage() {
     <AppShell>
       <PageHeader
         title="Profile"
-        subtitle="Your identity drives match scores, agent filters, cover letters, and tailored PDFs."
+        subtitle="Identity matches the six resumes: Account Manager, Events, CS, Program, Sales."
         actions={
           <>
+            <Button variant="outline" size="sm" onClick={loadResumeProfile}>
+              Load resume profile
+            </Button>
             <Button variant="outline" size="sm" onClick={doExport}>
               <Download className="h-3.5 w-3.5" />
               Export backup
@@ -151,6 +161,9 @@ function ProfilePage() {
             <Upload className="h-3.5 w-3.5" />
             Restore from JSON
           </Button>
+          <Button size="sm" variant="secondary" onClick={loadResumeProfile}>
+            Load resume profile
+          </Button>
           <p className="w-full text-xs text-muted mt-1">
             Includes: profile, boards, agents, applications, outreach, stories,
             activity, manual + live jobs.
@@ -163,7 +176,7 @@ function ProfilePage() {
           <CardHeader>
             <CardTitle>Identity</CardTitle>
             <CardDescription>
-              Edit to match how you want to show up in packets and outreach.
+              Pulled from the six resumes. Columbia, SC · remote / hybrid.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
